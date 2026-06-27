@@ -2,21 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "./zhash.h"
+#include "zhash.h"
 
-// helper macros and functions, declarations
-#define ZCOUNT_OF(arr) (sizeof(arr) / sizeof(*arr))
-#define zfree free
-
-static struct ZHashEntry *zcreate_entry(char *key, void *val);
-static void zfree_entry(struct ZHashEntry *entry, bool recursive);
+static struct ZHashEntry *zcreate_entry(struct ZAllocator allocator, char *key, void *val);
+static void zfree_entry(struct ZAllocator allocator, struct ZHashEntry *entry, bool recursive);
 static size_t zgenerate_hash(struct ZHashTable *hash_table, char *key);
 static void zhash_rehash(struct ZHashTable *hash_table, size_t size_index);
 static size_t znext_size_index(size_t size_index);
 static size_t zprevious_size_index(size_t size_index);
-static struct ZHashTable *zcreate_hash_table_with_size(size_t size_index);
-static void *zmalloc(size_t size);
-static void *zcalloc(size_t num, size_t size);
+static struct ZHashTable *zcreate_hash_table_with_size(struct ZAllocator allocator, size_t size_index);
+static void *zcalloc(struct ZAllocator allocator, size_t num, size_t size);
 
 // possible sizes for hash table; must be prime numbers
 static const size_t hash_sizes[] = {
@@ -26,9 +21,9 @@ static const size_t hash_sizes[] = {
 };
 
 // functions declared in zhash.h
-struct ZHashTable *zcreate_hash_table(void)
+struct ZHashTable *zcreate_hash_table(struct ZAllocator allocator)
 {
-  return zcreate_hash_table_with_size(0);
+  return zcreate_hash_table_with_size(allocator, 0);
 }
 
 void zfree_hash_table(struct ZHashTable *hash_table)
@@ -40,9 +35,10 @@ void zfree_hash_table(struct ZHashTable *hash_table)
   for (ii = 0; ii < size; ii++) {
     struct ZHashEntry *entry;
 
-    if ((entry = hash_table->entries[ii])) zfree_entry(entry, true);
+    if ((entry = hash_table->entries[ii])) zfree_entry(hash_table->allocator, entry, true);
   }
 
+  zfree_func zfree = hash_table->allocator.free;
   zfree((void *) hash_table->entries);
   zfree((void *) hash_table);
 }
@@ -63,7 +59,7 @@ void zhash_set(struct ZHashTable *hash_table, char *key, void *val)
     entry = entry->next;
   }
 
-  entry = zcreate_entry(key, val);
+  entry = zcreate_entry(hash_table->allocator, key, val);
 
   entry->next = hash_table->entries[hash];
   hash_table->entries[hash] = entry;
@@ -117,7 +113,7 @@ void *zhash_delete(struct ZHashTable *hash_table, char *key)
   if (!entry) return NULL;
 
   val = entry->val;
-  zfree_entry(entry, false);
+  zfree_entry(hash_table->allocator, entry, false);
   hash_table->entry_count--;
 
   size = hash_sizes[hash_table->size_index];
@@ -143,26 +139,27 @@ bool zhash_exists(struct ZHashTable *hash_table, char *key)
 }
 
 // helper functions, definitions
-static struct ZHashTable *zcreate_hash_table_with_size(size_t size_index)
+static struct ZHashTable *zcreate_hash_table_with_size(struct ZAllocator allocator, size_t size_index)
 {
   struct ZHashTable *hash_table;
 
-  hash_table = (struct ZHashTable *) zmalloc(sizeof(struct ZHashTable));
+  hash_table = (struct ZHashTable *) allocator.alloc(sizeof(struct ZHashTable));
 
   hash_table->size_index = size_index;
   hash_table->entry_count = 0;
-  hash_table->entries = zcalloc(hash_sizes[size_index], sizeof(void *));
+  hash_table->entries = zcalloc(allocator, hash_sizes[size_index], sizeof(void *));
+  hash_table->allocator = allocator;
 
   return hash_table;
 }
 
-static struct ZHashEntry *zcreate_entry(char *key, void *val)
+static struct ZHashEntry *zcreate_entry(struct ZAllocator allocator, char *key, void *val)
 {
   struct ZHashEntry *entry;
   char *key_cpy;
 
-  key_cpy = (char *) zmalloc((strlen(key) + 1) * sizeof(char));
-  entry = (struct ZHashEntry *) zmalloc(sizeof(struct ZHashEntry));
+  key_cpy = (char *) allocator.alloc((strlen(key) + 1) * sizeof(char));
+  entry = (struct ZHashEntry *) allocator.alloc(sizeof(struct ZHashEntry));
 
   strcpy(key_cpy, key);
   entry->key = key_cpy;
@@ -171,11 +168,13 @@ static struct ZHashEntry *zcreate_entry(char *key, void *val)
   return entry;
 }
 
-static void zfree_entry(struct ZHashEntry *entry, bool recursive)
+static void zfree_entry(struct ZAllocator allocator, struct ZHashEntry *entry, bool recursive)
 {
   struct ZHashEntry *next;
 
   if (!recursive) entry->next = NULL;
+
+  const zfree_func zfree = allocator.free;
 
   while (entry) {
     next = entry->next;
@@ -211,7 +210,7 @@ static void zhash_rehash(struct ZHashTable *hash_table, size_t size_index)
   entries = hash_table->entries;
 
   hash_table->size_index = size_index;
-  hash_table->entries = zcalloc(hash_sizes[size_index], sizeof(void *));
+  hash_table->entries = zcalloc(hash_table->allocator, hash_sizes[size_index], sizeof(void *));
 
   for (ii = 0; ii < size; ii++) {
     struct ZHashEntry *entry;
@@ -229,7 +228,7 @@ static void zhash_rehash(struct ZHashTable *hash_table, size_t size_index)
     }
   }
 
-  zfree((void *) entries);
+  hash_table->allocator.free((void *) entries);
 }
 
 static size_t znext_size_index(size_t size_index)
@@ -246,24 +245,14 @@ static size_t zprevious_size_index(size_t size_index)
   return size_index - 1;
 }
 
-static void *zmalloc(size_t size)
+
+// TODO remove zcalloc
+static void *zcalloc(struct ZAllocator allocator, size_t num, size_t size)
 {
-  void *ptr;
-
-  ptr = malloc(size);
-
-  if (!ptr) exit(EXIT_FAILURE);
-
-  return ptr;
-}
-
-static void *zcalloc(size_t num, size_t size)
-{
-  void *ptr;
-
-  ptr = calloc(num, size);
-
-  if (!ptr) exit(EXIT_FAILURE);
+  void *ptr = allocator.alloc(num * size);
+  if (ptr) {
+    memset(ptr, 0, num * size);
+  }
 
   return ptr;
 }

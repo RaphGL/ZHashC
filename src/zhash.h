@@ -2,13 +2,23 @@
 #define ZHASH_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 // hash table
 // keys are strings
 // values are void *pointers
 
 #define ZCOUNT_OF(arr) (sizeof(arr) / sizeof(*arr))
-#define zfree free
+
+typedef void *(*zmalloc_func)(size_t);
+typedef void (*zfree_func)(void *);
+
+struct ZAllocator {
+  zmalloc_func alloc;
+  zfree_func free;
+};
+
+#define ZDEFAULT_ALLOCATOR ((struct ZAllocator) { .alloc = malloc, .free = free })
 
 // struct representing an entry in the hash table
 struct ZHashEntry {
@@ -22,11 +32,12 @@ struct ZHashEntry {
 struct ZHashTable {
   size_t size_index;
   size_t entry_count;
+  struct ZAllocator allocator;
   struct ZHashEntry **entries;
 };
 
 // hash table creation and destruction
-struct ZHashTable *zcreate_hash_table(void);
+struct ZHashTable *zcreate_hash_table(struct ZAllocator allocator);
 void zfree_hash_table(struct ZHashTable *hash_table);
 
 // hash table operations

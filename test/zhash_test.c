@@ -30,7 +30,7 @@ static void zhash_set_test()
   struct ZHashTable *hash_table;
 
   size = 100;
-  hash_table = zcreate_hash_table();
+  hash_table = zcreate_hash_table(ZDEFAULT_ALLOCATOR);
   keys = malloc(size * sizeof(char *));
   vals = malloc(size * sizeof(char *));
 
@@ -70,7 +70,7 @@ static void zhash_delete_test()
   struct ZHashTable *hash_table;
 
   size = 100;
-  hash_table = zcreate_hash_table();
+  hash_table = zcreate_hash_table(ZDEFAULT_ALLOCATOR);
   keys = malloc(size * sizeof(char *));
   vals = malloc(size * sizeof(char *));
 
@@ -112,7 +112,7 @@ static void zhash_exists_test()
 {
   struct ZHashTable *hash_table;
 
-  hash_table = zcreate_hash_table();
+  hash_table = zcreate_hash_table(ZDEFAULT_ALLOCATOR);
 
   zhash_set(hash_table, "hello", (void *) "world");
   zhash_set(hash_table, "nothing", NULL);

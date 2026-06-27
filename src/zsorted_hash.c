@@ -2,25 +2,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ZCOUNT_OF(arr) (sizeof(arr) / sizeof(*arr))
-#define zfree free
+#include "zhash.h"
+#include "zsorted_hash.h"
 
-#include "./zhash.h"
-#include "./zsorted_hash.h"
+static void zfree_sorted_entry(struct ZAllocator allocator, struct ZSortedEntry *entry, bool recursive);
+static struct ZSortedEntry *zcreate_sorted_entry(struct ZAllocator allocator, char *key, void *val);
 
-static struct ZSortedEntry *zcreate_sorted_entry(char *key, void *val);
-static void zfree_sorted_entry(struct ZSortedEntry *entry, bool recursive);
-static void *zmalloc(size_t size);
-
-struct ZSortedHashTable *zcreate_sorted_hash_table(void)
+struct ZSortedHashTable *zcreate_sorted_hash_table(struct ZAllocator allocator)
 {
   struct ZSortedHashTable *hash_table;
 
-  hash_table = zmalloc(sizeof(struct ZSortedHashTable));
+  hash_table = allocator.alloc(sizeof(struct ZSortedHashTable));
 
-  hash_table->table = zcreate_hash_table();
+  hash_table->table = zcreate_hash_table(allocator);
   hash_table->first = NULL;
   hash_table->last = NULL;
+  hash_table->allocator = allocator;
 
   return hash_table;
 }
@@ -28,8 +25,8 @@ struct ZSortedHashTable *zcreate_sorted_hash_table(void)
 void zfree_sorted_hash_table(struct ZSortedHashTable *hash_table)
 {
   zfree_hash_table(hash_table->table);
-  zfree_sorted_entry(hash_table->first, true);
-  zfree(hash_table);
+  zfree_sorted_entry(hash_table->allocator, hash_table->first, true);
+  hash_table->allocator.free(hash_table);
 }
 
 void zsorted_hash_set(struct ZSortedHashTable *hash_table, char *key, void *val)
@@ -42,7 +39,7 @@ void zsorted_hash_set(struct ZSortedHashTable *hash_table, char *key, void *val)
     return;
   }
 
-  entry = zcreate_sorted_entry(key, val);
+  entry = zcreate_sorted_entry(hash_table->allocator, key, val);
 
   if (hash_table->last) {
     entry->prev = hash_table->last;
@@ -91,7 +88,7 @@ void *zsorted_hash_delete(struct ZSortedHashTable *hash_table, char *key)
   }
 
   zhash_delete(hash_table->table, key);
-  zfree_sorted_entry(entry, false);
+  zfree_sorted_entry(hash_table->allocator, entry, false);
 
   return val;
 }
@@ -101,13 +98,14 @@ bool zsorted_hash_exists(struct ZSortedHashTable *hash_table, char *key)
   return zhash_exists(hash_table->table, key);
 }
 
-struct ZIterator *zcreate_iterator(struct ZSortedHashTable *hash_table)
+struct ZIterator *zcreate_iterator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table)
 {
   struct ZIterator *iterator;
 
-  iterator = zmalloc(sizeof(struct ZIterator));
+  iterator = allocator.alloc(sizeof(struct ZIterator));
 
   iterator->entry = hash_table->first;
+  iterator->allocator = allocator;
 
   if (iterator->entry) {
     iterator->status = ZWITHIN_BOUNDS;
@@ -120,7 +118,7 @@ struct ZIterator *zcreate_iterator(struct ZSortedHashTable *hash_table)
 
 void zfree_iterator(struct ZIterator *iterator)
 {
-  zfree(iterator);
+  iterator->allocator.free(iterator);
 }
 
 size_t zsorted_hash_count(struct ZSortedHashTable *hash_table)
@@ -183,11 +181,11 @@ void ziterator_prev(struct ZIterator *iterator)
   }
 }
 
-static struct ZSortedEntry *zcreate_sorted_entry(char *key, void *val)
+static struct ZSortedEntry *zcreate_sorted_entry(struct ZAllocator allocator, char *key, void *val)
 {
   struct ZSortedEntry *entry;
 
-  entry = zmalloc(sizeof(struct ZSortedEntry));
+  entry = allocator.alloc(sizeof(struct ZSortedEntry));
 
   entry->key = key;
   entry->val = val;
@@ -195,7 +193,7 @@ static struct ZSortedEntry *zcreate_sorted_entry(char *key, void *val)
   return entry;
 }
 
-static void zfree_sorted_entry(struct ZSortedEntry *entry, bool recursive)
+static void zfree_sorted_entry(struct ZAllocator allocator, struct ZSortedEntry *entry, bool recursive)
 {
   struct ZSortedEntry *next;
 
@@ -204,19 +202,8 @@ static void zfree_sorted_entry(struct ZSortedEntry *entry, bool recursive)
   while (entry) {
     next = entry->next;
 
-    zfree(entry);
+    allocator.free(entry);
 
     entry = next;
   }
-}
-
-static void *zmalloc(size_t size)
-{
-  void *ptr;
-
-  ptr = malloc(size);
-
-  if (!ptr) exit(EXIT_FAILURE);
-
-  return ptr;
 }

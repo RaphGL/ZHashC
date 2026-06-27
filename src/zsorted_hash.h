@@ -20,6 +20,7 @@ struct ZSortedEntry {
 
 // struct representing a sorted hash table
 struct ZSortedHashTable {
+  struct ZAllocator allocator;
   struct ZHashTable *table;
   struct ZSortedEntry *first;
   struct ZSortedEntry *last;
@@ -34,11 +35,12 @@ enum ZIteratorStatus {
 };
 struct ZIterator {
   enum ZIteratorStatus status;
+  struct ZAllocator allocator;
   struct ZSortedEntry *entry;
 };
 
 // sorted hash table creation and destruction
-struct ZSortedHashTable *zcreate_sorted_hash_table(void);
+struct ZSortedHashTable *zcreate_sorted_hash_table(struct ZAllocator allocator);
 void zfree_sorted_hash_table(struct ZSortedHashTable *hash_table);
 
 // sorted hash table operations
@@ -48,7 +50,7 @@ void *zsorted_hash_delete(struct ZSortedHashTable *hash_table, char *key);
 bool zsorted_hash_exists(struct ZSortedHashTable *hash_table, char *key);
 
 // iterator creation and destruction
-struct ZIterator *zcreate_iterator(struct ZSortedHashTable *hash_table);
+struct ZIterator *zcreate_iterator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table);
 void zfree_iterator(struct ZIterator *iterator);
 
 // iteration functions
