@@ -10,12 +10,12 @@
 
 #define ZCOUNT_OF(arr) (sizeof(arr) / sizeof(*arr))
 
-typedef void *(*zmalloc_func)(size_t);
-typedef void (*zfree_func)(void *);
+typedef void *(*ZMallocFunc)(size_t);
+typedef void (*ZFreeFunc)(void *);
 
 struct ZAllocator {
-  zmalloc_func alloc;
-  zfree_func free;
+  ZMallocFunc alloc;
+  ZFreeFunc free;
 };
 
 #define ZDEFAULT_ALLOCATOR ((struct ZAllocator) { .alloc = malloc, .free = free })
@@ -41,7 +41,7 @@ struct ZHashTable *zcreate_hash_table(struct ZAllocator allocator);
 void zfree_hash_table(struct ZHashTable *hash_table);
 
 // hash table operations
-void zhash_set(struct ZHashTable *hash_table, char *key, void *val);
+bool zhash_set(struct ZHashTable *hash_table, char *key, void *val);
 void *zhash_get(struct ZHashTable *hash_table, char *key);
 void *zhash_delete(struct ZHashTable *hash_table, char *key);
 bool zhash_exists(struct ZHashTable *hash_table, char *key);

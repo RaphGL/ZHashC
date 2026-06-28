@@ -37,9 +37,7 @@ Standard hash table. Basic hash table operations are supported: `set`, `get`,
 // prints "hello world" to stdout
 int main ()
 {
-  struct ZHashTable *hash_table;
-
-  hash_table = zcreate_hash_table();
+  struct ZHashTable *hash_table = zcreate_hash_table(ZDEFAULT_ALLOCATOR);
 
   zhash_set(hash_table, "hello", (void *) "world");
 
@@ -61,13 +59,13 @@ int main ()
 
 ```c
 // create hash table
-struct ZHashTable *zcreate_hash_table(void);
+struct ZHashTable *zcreate_hash_table(struct ZAllocator);
 
 // free hash table (note that this only frees the table and the entry structs)
 void zfree_hash_table(struct ZHashTable *hash_table);
 
 // set key to val (if there is already a value, overwrite it)
-void zhash_set(struct ZHashTable *hash_table, char *key, void *val);
+bool zhash_set(struct ZHashTable *hash_table, char *key, void *val);
 
 // get the value stored at key (if no value, return NULL)
 void *zhash_get(struct ZHashTable *hash_table, char *key);
@@ -99,15 +97,12 @@ necessary bookkeeping when an entry is deleted.
 // prints "hello world" in English and French to stdout
 int main ()
 {
-  struct ZSortedHashTable *hash_table;
-  struct ZIterator *iterator;
-
-  hash_table = zcreate_sorted_hash_table();
+  struct ZSortedHashTable *hash_table = zcreate_sorted_hash_table(ZDEFAULT_ALLOCATOR);
 
   zsorted_hash_set(hash_table, "hello", (void *) "world");
   zsorted_hash_set(hash_table, "bonjour", (void *) "le monde");
 
-  for (iterator = zcreate_iterator(hash_table);
+  for (struct ZIterator *iterator = zcreate_iterator(hash_table);
       ziterator_exists(iterator); ziterator_next(iterator)) {
 
     printf("%s %s\n", ziterator_get_key(iterator),
@@ -125,15 +120,15 @@ int main ()
 
 ```c
 // these functions behave the same as their counterparts in zhash.h
-struct ZSortedHashTable *zcreate_sorted_hash_table(void);
+struct ZSortedHashTable *zcreate_sorted_hash_table(ZAllocator allocator);
 void zfree_sorted_hash_table(struct ZSortedHashTable *hash_table);
-void zsorted_hash_set(struct ZSortedHashTable *hash_table, char *key, void *val);
+bool zsorted_hash_set(struct ZSortedHashTable *hash_table, char *key, void *val);
 void *zsorted_hash_get(struct ZSortedHashTable *hash_table, char *key);
 void *zsorted_hash_delete(struct ZSortedHashTable *hash_table, char *key);
 bool zsorted_hash_exists(struct ZSortedHashTable *hash_table, char *key);
 
 // create an iterator to be used in iteration functions below
-struct ZIterator *zcreate_iterator(struct ZSortedHashTable *hash_table);
+struct ZIterator *zcreate_iterator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table);
 
 // free iterator
 void zfree_iterator(struct ZIterator *iterator);
@@ -168,5 +163,6 @@ The tests will fail if neither is present.
 
 ## Notes
 
-Tested on `Ubuntu 22.04` with `GCC 11.3.0`
+Tested on `Ubuntu 22.04` with `GCC 11.3.0`,
+tested on `CachyOS` with `GCC 16.1.1`
 and on `macOS 13.3.1` with `Apple clang version 14.0.3`.

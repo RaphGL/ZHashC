@@ -6,7 +6,7 @@ function run_tests() {
 
   echo "[INFO]: Testing $output_file"
 
-  gcc -Wall -Wextra -g $input_files -o $output_file
+  gcc -Wall -Wextra -g -std=c99 $input_files -o $output_file
 
   ./$output_file
   if [ $? -ne 0 ]; then

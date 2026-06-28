@@ -44,7 +44,7 @@ struct ZSortedHashTable *zcreate_sorted_hash_table(struct ZAllocator allocator);
 void zfree_sorted_hash_table(struct ZSortedHashTable *hash_table);
 
 // sorted hash table operations
-void zsorted_hash_set(struct ZSortedHashTable *hash_table, char *key, void *val);
+bool zsorted_hash_set(struct ZSortedHashTable *hash_table, char *key, void *val);
 void *zsorted_hash_get(struct ZSortedHashTable *hash_table, char *key);
 void *zsorted_hash_delete(struct ZSortedHashTable *hash_table, char *key);
 bool zsorted_hash_exists(struct ZSortedHashTable *hash_table, char *key);
