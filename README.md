@@ -102,7 +102,7 @@ int main ()
   zsorted_hash_set(hash_table, "hello", (void *) "world");
   zsorted_hash_set(hash_table, "bonjour", (void *) "le monde");
 
-  for (struct ZIterator *iterator = zcreate_iterator(hash_table);
+  for (struct ZIterator *iterator = zcreate_iterator(ZDEFAULT_ALLOCATOR, hash_table);
       ziterator_exists(iterator); ziterator_next(iterator)) {
 
     printf("%s %s\n", ziterator_get_key(iterator),
@@ -120,7 +120,7 @@ int main ()
 
 ```c
 // these functions behave the same as their counterparts in zhash.h
-struct ZSortedHashTable *zcreate_sorted_hash_table(ZAllocator allocator);
+struct ZSortedHashTable *zcreate_sorted_hash_table(struct ZAllocator allocator);
 void zfree_sorted_hash_table(struct ZSortedHashTable *hash_table);
 bool zsorted_hash_set(struct ZSortedHashTable *hash_table, char *key, void *val);
 void *zsorted_hash_get(struct ZSortedHashTable *hash_table, char *key);
