@@ -7,7 +7,7 @@ int main ()
 {
   struct ZHashTable *hash_table;
 
-  hash_table = zcreate_hash_table();
+  hash_table = zcreate_hash_table(ZDEFAULT_ALLOCATOR);
 
   zhash_set(hash_table, "hello", (void *) "world");
 

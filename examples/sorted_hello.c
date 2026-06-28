@@ -8,12 +8,12 @@ int main ()
   struct ZSortedHashTable *hash_table;
   struct ZIterator *iterator;
 
-  hash_table = zcreate_sorted_hash_table();
+  hash_table = zcreate_sorted_hash_table(ZDEFAULT_ALLOCATOR);
 
   zsorted_hash_set(hash_table, "hello", (void *) "world");
   zsorted_hash_set(hash_table, "bonjour", (void *) "le monde");
 
-  for (iterator = zcreate_iterator(hash_table);
+  for (iterator = zcreate_iterator(ZDEFAULT_ALLOCATOR, hash_table);
       ziterator_exists(iterator); ziterator_next(iterator)) {
 
     printf("%s %s\n", ziterator_get_key(iterator),
