@@ -116,7 +116,29 @@ int main ()
 }
 ```
 
-### Public Interface
+### Custom Allocators
+
+Custom allocators are a changing the allocation strategy in a program. Often when doing allocations all objects being allocated share the same lifetime,
+meaning that these values will either be deallocated together or not too far apart from each other. In these situations being able to allocate them normally but 
+being able to discard all of them at once makes managing memory much easier. There's multiple types of allocators out there, if you want to learn more about them
+I recommend checking out [gingerBill's series on custom allocators](https://www.gingerbill.org/series/memory-allocation-strategies/).
+
+The basic usage of custom allocators in zhash is by passing along the malloc and free functions for your allocator with the `struct ZAllocator` type:
+```c
+struct ZAllocator {
+  ZMallocFunc alloc;
+  ZFreeFunc free;
+};
+```
+If you're not using a general purpose allocator and you have some sort of `free_all` function that you run at a specific point in your code,
+you can opt for having a no-op free function like this:
+```c
+void free_noop(void *buf) { return; }
+```
+Then you don't have to worry about the hash table freeing memory.
+
+
+ ### Public Interface
 
 ```c
 // these functions behave the same as their counterparts in zhash.h
