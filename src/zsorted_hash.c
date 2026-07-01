@@ -8,7 +8,12 @@
 static void zfree_sorted_entry(struct ZAllocator allocator, struct ZSortedEntry *entry, bool recursive);
 static struct ZSortedEntry *zcreate_sorted_entry(struct ZAllocator allocator, char *key, void *val);
 
-struct ZSortedHashTable *zcreate_sorted_hash_table(struct ZAllocator allocator)
+struct ZSortedHashTable *zcreate_sorted_hash_table(void)
+{
+  return zcreate_sorted_hash_table_with_allocator(ZDEFAULT_ALLOCATOR);
+}
+
+struct ZSortedHashTable *zcreate_sorted_hash_table_with_allocator(struct ZAllocator allocator)
 {
   struct ZSortedHashTable *hash_table;
 
@@ -17,7 +22,7 @@ struct ZSortedHashTable *zcreate_sorted_hash_table(struct ZAllocator allocator)
     return NULL;
   }
 
-  hash_table->table = zcreate_hash_table(allocator);
+  hash_table->table = zcreate_hash_table_with_allocator(allocator);
   hash_table->first = NULL;
   hash_table->last = NULL;
   hash_table->allocator = allocator;
@@ -101,7 +106,7 @@ bool zsorted_hash_exists(struct ZSortedHashTable *hash_table, char *key)
   return zhash_exists(hash_table->table, key);
 }
 
-struct ZIterator *zcreate_iterator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table)
+struct ZIterator *zcreate_iterator_with_allocator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table)
 {
   struct ZIterator *iterator;
 
@@ -120,6 +125,11 @@ struct ZIterator *zcreate_iterator(struct ZAllocator allocator, struct ZSortedHa
   }
 
   return iterator;
+}
+
+struct ZIterator *zcreate_iterator(struct ZSortedHashTable *hash_table)
+{
+  return zcreate_iterator_with_allocator(ZDEFAULT_ALLOCATOR, hash_table);
 }
 
 void zfree_iterator(struct ZIterator *iterator)

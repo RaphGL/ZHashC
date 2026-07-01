@@ -40,7 +40,8 @@ struct ZIterator {
 };
 
 // sorted hash table creation and destruction
-struct ZSortedHashTable *zcreate_sorted_hash_table(struct ZAllocator allocator);
+struct ZSortedHashTable *zcreate_sorted_hash_table(void);
+struct ZSortedHashTable *zcreate_sorted_hash_table_with_allocator(struct ZAllocator allocator);
 void zfree_sorted_hash_table(struct ZSortedHashTable *hash_table);
 
 // sorted hash table operations
@@ -50,7 +51,8 @@ void *zsorted_hash_delete(struct ZSortedHashTable *hash_table, char *key);
 bool zsorted_hash_exists(struct ZSortedHashTable *hash_table, char *key);
 
 // iterator creation and destruction
-struct ZIterator *zcreate_iterator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table);
+struct ZIterator *zcreate_iterator(struct ZSortedHashTable *hash_table);
+struct ZIterator *zcreate_iterator_with_allocator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table);
 void zfree_iterator(struct ZIterator *iterator);
 
 // iteration functions

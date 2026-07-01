@@ -21,7 +21,12 @@ static const size_t hash_sizes[] = {
 };
 
 // functions declared in zhash.h
-struct ZHashTable *zcreate_hash_table(struct ZAllocator allocator)
+struct ZHashTable *zcreate_hash_table(void)
+{
+  return zcreate_hash_table_with_size(ZDEFAULT_ALLOCATOR, 0);
+}
+
+struct ZHashTable *zcreate_hash_table_with_allocator(struct ZAllocator allocator)
 {
   return zcreate_hash_table_with_size(allocator, 0);
 }

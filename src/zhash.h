@@ -37,7 +37,8 @@ struct ZHashTable {
 };
 
 // hash table creation and destruction
-struct ZHashTable *zcreate_hash_table(struct ZAllocator allocator);
+struct ZHashTable *zcreate_hash_table(void);
+struct ZHashTable *zcreate_hash_table_with_allocator(struct ZAllocator);
 void zfree_hash_table(struct ZHashTable *hash_table);
 
 // hash table operations

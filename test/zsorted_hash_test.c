@@ -30,7 +30,7 @@ static void zsorted_hash_set_test()
   struct ZSortedHashTable *hash_table;
 
   size = 100;
-  hash_table = zcreate_sorted_hash_table(ZDEFAULT_ALLOCATOR);
+  hash_table = zcreate_sorted_hash_table();
   keys = malloc(size * sizeof(char *));
   vals = malloc(size * sizeof(char *));
 
@@ -63,7 +63,7 @@ static void zsorted_hash_delete_test()
   struct ZSortedHashTable *hash_table;
 
   size = 100;
-  hash_table = zcreate_sorted_hash_table(ZDEFAULT_ALLOCATOR);
+  hash_table = zcreate_sorted_hash_table();
   keys = malloc(size * sizeof(char *));
   vals = malloc(size * sizeof(char *));
 
@@ -103,7 +103,7 @@ static void zsorted_hash_exists_test()
 {
   struct ZSortedHashTable *hash_table;
 
-  hash_table = zcreate_sorted_hash_table(ZDEFAULT_ALLOCATOR);
+  hash_table = zcreate_sorted_hash_table();
 
   zsorted_hash_set(hash_table, "hello", (void *) "world");
   zsorted_hash_set(hash_table, "nothing", NULL);
@@ -124,7 +124,7 @@ static void ziterator_test()
   struct ZIterator *iterator;
 
   size = 100;
-  hash_table = zcreate_sorted_hash_table(ZDEFAULT_ALLOCATOR);
+  hash_table = zcreate_sorted_hash_table();
   keys = malloc(size * sizeof(char *));
   vals = malloc(size * sizeof(char *));
 
@@ -139,7 +139,7 @@ static void ziterator_test()
   zsorted_hash_delete(hash_table, keys[size - 1]);
   zsorted_hash_set(hash_table, keys[90], (void *) vals[90]);
 
-  iterator = zcreate_iterator(ZDEFAULT_ALLOCATOR, hash_table);
+  iterator = zcreate_iterator(hash_table);
 
   for (ii = 1; ii < size - 1; ii++) {
     if (ii != 20) {
