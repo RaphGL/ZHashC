@@ -59,7 +59,10 @@ int main ()
 
 ```c
 // create hash table
-struct ZHashTable *zcreate_hash_table(struct ZAllocator);
+struct ZHashTable *zcreate_hash_table(void);
+
+// create a hash table with a custom allocator
+struct ZHashTable *zcreate_hash_table_with_allocator(struct ZAllocator);
 
 // free hash table (note that this only frees the table and the entry structs)
 void zfree_hash_table(struct ZHashTable *hash_table);
@@ -142,7 +145,8 @@ Then you don't have to worry about the hash table freeing memory.
 
 ```c
 // these functions behave the same as their counterparts in zhash.h
-struct ZSortedHashTable *zcreate_sorted_hash_table(struct ZAllocator allocator);
+struct ZSortedHashTable *zcreate_sorted_hash_table(void);
+struct ZSortedHashTable *zcreate_sorted_hash_table_with_allocator(struct ZAllocator allocator);
 void zfree_sorted_hash_table(struct ZSortedHashTable *hash_table);
 bool zsorted_hash_set(struct ZSortedHashTable *hash_table, char *key, void *val);
 void *zsorted_hash_get(struct ZSortedHashTable *hash_table, char *key);
@@ -150,7 +154,10 @@ void *zsorted_hash_delete(struct ZSortedHashTable *hash_table, char *key);
 bool zsorted_hash_exists(struct ZSortedHashTable *hash_table, char *key);
 
 // create an iterator to be used in iteration functions below
-struct ZIterator *zcreate_iterator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table);
+struct ZIterator *zcreate_iterator(struct ZSortedHashTable *hash_table);
+
+// create an iterator with a custom allocator
+struct ZIterator *zcreate_iterator_with_allocator(struct ZAllocator allocator, struct ZSortedHashTable *hash_table);
 
 // free iterator
 void zfree_iterator(struct ZIterator *iterator);
